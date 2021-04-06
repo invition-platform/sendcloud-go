@@ -76,6 +76,7 @@ type ParcelRequest struct {
 	OrderNumber      string  `json:"order_number"`
 	ExternalID       *string `json:"external_reference,omitempty"`
 	SenderID         *int64  `json:"sender_address,omitempty"`
+	Weight           string  `json:"weight"`
 	Shipment         struct {
 		ID int64 `json:"id"`
 	} `json:"shipment"`
@@ -170,6 +171,7 @@ func (p *ParcelParams) GetPayload() interface{} {
 		Telephone:    p.PhoneNumber,
 		Email:        p.EmailAddress,
 		RequestLabel: p.IsLabelRequested,
+		Weight:       p.Weight,
 		Shipment: struct {
 			ID int64 `json:"id"`
 		}{

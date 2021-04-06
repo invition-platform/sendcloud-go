@@ -2,7 +2,6 @@ package sendcloud
 
 import (
 	"encoding/json"
-	"strconv"
 	"time"
 )
 
@@ -24,7 +23,7 @@ type ParcelParams struct {
 	PhoneNumber      string
 	ExternalID       string
 	ToServicePointID int64
-	Weight           int64
+	Weight           string
 	OrderNumber      string
 	SenderID         int64
 }
@@ -46,7 +45,7 @@ type Parcel struct {
 	PhoneNumber    *string     `json:"phone_number"`
 	TrackingNumber string      `json:"tracking_number"`
 	ServicePointID *int64      `json:"to_service_point"`
-	Weight         int64       `json:"weight"`
+	Weight         string      `json:"weight"`
 	Label          string      `json:"label"`
 	OrderNumber    string      `json:"order_number"`
 	IsReturn       bool        `json:"is_return"`
@@ -225,9 +224,7 @@ func (p *ParcelResponseContainer) GetResponse() interface{} {
 	createdAt, _ := time.Parse(layout, p.Parcel.DateCreated)
 	parcel.CreatedAt = createdAt
 
-	weightFloat, _ := strconv.ParseFloat(p.Parcel.Weight, 64)
-	weight := int64(weightFloat * 1000)
-	parcel.Weight = weight
+	parcel.Weight = p.Parcel.Weight
 	return &parcel
 }
 

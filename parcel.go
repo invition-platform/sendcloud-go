@@ -3,6 +3,8 @@ package sendcloud
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 type LabelData []byte
@@ -23,9 +25,29 @@ type ParcelParams struct {
 	PhoneNumber      string
 	ExternalID       string
 	ToServicePointID int64
-	Weight           string
-	OrderNumber      string
-	SenderID         int64
+
+	// Only set either Weight or WeithDecimal, never both.
+	Weight        string
+	WeightDecimal decimal.Decimal
+
+	OrderNumber string
+	SenderID    int64
+
+	CustomsInvoiceNr        string
+	CustomsShipmentType     int64
+	ParcelItems             []ParcelParamsItem
+	TotalOrderValue         decimal.Decimal
+	TotalOrderValueCurrency string
+}
+
+type ParcelParamsItem struct {
+	Description   string
+	Quantity      uint64
+	Weight        decimal.Decimal
+	Value         decimal.Decimal
+	HsCode        string
+	OriginCountry string
+	SKU           string
 }
 
 type Parcel struct {
@@ -80,6 +102,21 @@ type ParcelRequest struct {
 	Shipment         struct {
 		ID int64 `json:"id"`
 	} `json:"shipment"`
+	CustomsInvoiceNr        string              `json:"customs_invoice_nr"`
+	CustomsShipmentType     int64               `json:"customs_shipment_type"`
+	ParcelItems             []ParcelRequestItem `json:"parcel_items"`
+	TotalOrderValue         string              `json:"total_order_value"`
+	TotalOrderValueCurrency string              `json:"total_order_value_currency"`
+}
+
+type ParcelRequestItem struct {
+	Description   string          `json:"description"`
+	Quantity      uint64          `json:"quantity"`
+	Weight        string          `json:"weight"`
+	Value         json.RawMessage `json:"value"` // decimal (as json-number, not as json-string), but we can't go through float64.
+	HsCode        string          `json:"hs_code"`
+	OriginCountry string          `json:"origin_country"`
+	SKU           string          `json:"sku"`
 }
 
 type LabelResponseContainer struct {
@@ -171,12 +208,24 @@ func (p *ParcelParams) GetPayload() interface{} {
 		Telephone:    p.PhoneNumber,
 		Email:        p.EmailAddress,
 		RequestLabel: p.IsLabelRequested,
-		Weight:       p.Weight,
 		Shipment: struct {
 			ID int64 `json:"id"`
 		}{
 			ID: p.Method,
 		},
+		CustomsInvoiceNr:        p.CustomsInvoiceNr,
+		CustomsShipmentType:     p.CustomsShipmentType,
+		TotalOrderValue:         p.TotalOrderValue.String(),
+		TotalOrderValueCurrency: p.TotalOrderValueCurrency,
+	}
+	if !p.WeightDecimal.Equals(decimal.Zero) {
+		if p.Weight != "" {
+			// This is a programming error and therefore results in a panic.
+			panic("Invalid ParcelParams, it is illegal set both Weight and WeightDecimal.")
+		}
+		parcel.Weight = p.WeightDecimal.String()
+	} else {
+		parcel.Weight = p.Weight
 	}
 	if p.SenderID != 0 {
 		parcel.SenderID = &p.SenderID
@@ -189,6 +238,19 @@ func (p *ParcelParams) GetPayload() interface{} {
 	}
 	if p.ToServicePointID != 0 {
 		parcel.ToServicePointID = &p.ToServicePointID
+	}
+
+	parcel.ParcelItems = make([]ParcelRequestItem, len(p.ParcelItems))
+	for i, item := range p.ParcelItems {
+		parcel.ParcelItems[i] = ParcelRequestItem{
+			Description:   item.Description,
+			Quantity:      item.Quantity,
+			Weight:        item.Weight.String(),
+			Value:         json.RawMessage(item.Value.String()),
+			HsCode:        item.HsCode,
+			OriginCountry: item.OriginCountry,
+			SKU:           item.SKU,
+		}
 	}
 
 	ar := ParcelRequestContainer{Parcel: parcel}

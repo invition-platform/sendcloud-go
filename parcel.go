@@ -8,6 +8,10 @@ import (
 
 type LabelData []byte
 
+type PortalURLResponse struct {
+	URL string `json:"url"`
+}
+
 type ParcelParams struct {
 	Name             string
 	CompanyName      string

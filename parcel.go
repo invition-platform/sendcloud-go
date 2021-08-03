@@ -45,6 +45,7 @@ type Parcel struct {
 	Method         int64       `json:"method"`
 	PhoneNumber    *string     `json:"phone_number"`
 	TrackingNumber string      `json:"tracking_number"`
+	TrackingURL    string      `json:"tracking_url"`
 	ServicePointID *int64      `json:"to_service_point"`
 	Weight         int64       `json:"weight"`
 	Label          string      `json:"label"`
@@ -118,6 +119,7 @@ type ParcelResponse struct {
 	ToServicePointID    *int64          `json:"to_service_point"`
 	Telephone           *string         `json:"telephone"`
 	TrackingNumber      string          `json:"tracking_number"`
+	TrackingURL         string          `json:"tracking_url"`
 	Weight              string          `json:"weight"`
 	Label               LabelResponse   `json:"label"`
 	OrderNumber         string          `json:"order_number"`
@@ -212,6 +214,7 @@ func (p *ParcelResponseContainer) GetResponse() interface{} {
 		CountryCode:    p.Parcel.Country.Iso2,
 		PhoneNumber:    p.Parcel.Telephone,
 		TrackingNumber: p.Parcel.TrackingNumber,
+		TrackingURL:    p.Parcel.TrackingURL,
 		ServicePointID: p.Parcel.ToServicePointID,
 		Label:          p.Parcel.Label.LabelPrinter,
 		OrderNumber:    p.Parcel.OrderNumber,

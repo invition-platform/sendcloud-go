@@ -6,8 +6,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	sendcloud "github.com/afosto/sendcloud-go"
 	"strconv"
+
+	sendcloud "github.com/afosto/sendcloud-go"
 )
 
 type Client struct {
@@ -25,7 +26,7 @@ func New(apiKey string, apiSecret string) *Client {
 //Create a new parcel
 func (c *Client) New(params *sendcloud.ParcelParams) (*sendcloud.Parcel, error) {
 	parcel := sendcloud.ParcelResponseContainer{}
-	err := sendcloud.Request("POST", "/api/v2/parcels?errors=verbose-carrier", params, c.apiKey, c.apiSecret, &parcel)
+	err := sendcloud.Request("POST", "/api/v2/parcels", params, c.apiKey, c.apiSecret, &parcel)
 
 	if err != nil {
 		return nil, err

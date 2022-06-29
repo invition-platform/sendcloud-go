@@ -55,6 +55,7 @@ func Request(method string, uri string, payload Payload, apiKey string, apiSecre
 		if err != nil {
 			return err
 		}
+		fmt.Println(string(body))
 		request, err = http.NewRequest(method, getUrl(uri), bytes.NewBuffer(body))
 		if err != nil {
 			return err
@@ -76,6 +77,7 @@ func Request(method string, uri string, payload Payload, apiKey string, apiSecre
 	if err != nil {
 		return err
 	}
+	fmt.Println(string(body))
 
 	if response.StatusCode > 299 || response.StatusCode < 200 {
 		//Return error response

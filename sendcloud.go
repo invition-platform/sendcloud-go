@@ -100,7 +100,7 @@ func getUrl(uri string) string {
 	if strings.HasPrefix(uri, "https://") {
 		url = uri
 	} else {
-		url = "https://app.sendcloud.com/" + uri
+		url = "https://panel.sendcloud.sc/" + strings.TrimPrefix(uri, "/")
 	}
 
 	return url

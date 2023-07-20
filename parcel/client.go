@@ -1,6 +1,7 @@
 package parcel
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"

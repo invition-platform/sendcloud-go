@@ -316,3 +316,8 @@ func (l *LabelData) SetResponse(body []byte) error {
 	*l = body
 	return nil
 }
+
+type Document struct {
+	ContentType string
+	Body        []byte
+}

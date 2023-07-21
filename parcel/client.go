@@ -91,7 +91,7 @@ func (c *Client) GetDocument(parcelID int64, docType string, dpi int) (*sendclou
 		return nil, err
 	}
 
-	client := http.Client{Timeout: 10 * time.Second}
+	client := http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, err

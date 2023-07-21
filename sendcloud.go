@@ -74,7 +74,7 @@ func Request(method, uri string, payload Payload, apiKey, apiSecret string, r Re
 		return err
 	}
 
-	client := http.Client{Timeout: 10 * time.Second}
+	client := http.Client{Timeout: 30 * time.Second}
 	response, err := client.Do(request)
 	if err != nil {
 		return err

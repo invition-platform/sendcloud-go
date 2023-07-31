@@ -81,15 +81,19 @@ func (c *Client) ReadParcelWebhook(payload []byte, signature string) (*sendcloud
 
 // GetDocument retrieves the parcel document of parcelID with type docType from the api.
 // https://api.sendcloud.dev/docs/sendcloud-public-api/parcel-documents/operations/get-a-parcel-document
-func (c *Client) GetDocument(parcelID int64, docType string, dpi int) (*sendcloud.Document, error) {
-	uri := "/api/v2/parcels/" + strconv.Itoa(int(parcelID)) + "/documents/" + docType
+func (c *Client) GetDocument(ctx context.Context, parcelID int64, docTyp string, fmt sendcloud.DocumentFormat, dpi int) (*sendcloud.Document, error) {
+	uri := "/api/v2/parcels/" + strconv.Itoa(int(parcelID)) + "/documents/" + docTyp
 	if dpi > 0 {
-		uri += "dpi=" + strconv.Itoa(dpi)
+		uri += "?dpi=" + strconv.Itoa(dpi)
 	}
 
-	req, err := sendcloud.NewRequest("GET", uri, nil, c.apiKey, c.apiSecret)
+	req, err := sendcloud.NewRequest(ctx, "GET", uri, nil, c.apiKey, c.apiSecret)
 	if err != nil {
 		return nil, err
+	}
+
+	if fmt != "" {
+		req.Header.Set("accept", fmt.String())
 	}
 
 	client := http.Client{Timeout: 30 * time.Second}
@@ -104,7 +108,7 @@ func (c *Client) GetDocument(parcelID int64, docType string, dpi int) (*sendclou
 	}
 
 	doc := sendcloud.Document{
-		ContentType: response.Header.Get("content-type"),
+		Format: sendcloud.DocumentFormat(response.Header.Get("content-type")),
 	}
 	if doc.Body, err = ioutil.ReadAll(response.Body); err != nil {
 		return nil, err

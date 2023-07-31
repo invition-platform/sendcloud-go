@@ -2,6 +2,7 @@ package sendcloud
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -39,12 +40,12 @@ func (e *Error) Error() string {
 
 // NewRequest creates and prepares a *http.Request with the given method, url,
 // payload and credentials, so it's ready to be sent to Sendcloud.
-func NewRequest(method, uri string, payload Payload, apiKey, apiSecret string) (*http.Request, error) {
+func NewRequest(ctx context.Context, method, uri string, payload Payload, apiKey, apiSecret string) (*http.Request, error) {
 	var request *http.Request
 	var err error
 
 	if payload == nil {
-		request, err = http.NewRequest(method, getUrl(uri), nil)
+		request, err = http.NewRequestWithContext(ctx, method, getUrl(uri), nil)
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +54,7 @@ func NewRequest(method, uri string, payload Payload, apiKey, apiSecret string) (
 		if err != nil {
 			return nil, err
 		}
-		request, err = http.NewRequest(method, getUrl(uri), bytes.NewBuffer(body))
+		request, err = http.NewRequestWithContext(ctx, method, getUrl(uri), bytes.NewBuffer(body))
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +70,7 @@ func NewRequest(method, uri string, payload Payload, apiKey, apiSecret string) (
 
 // Request sends a request to Sendcloud with given method, path, payload and credentials.
 func Request(method, uri string, payload Payload, apiKey, apiSecret string, r Response) error {
-	request, err := NewRequest(method, uri, payload, apiKey, apiSecret)
+	request, err := NewRequest(context.Background(), method, uri, payload, apiKey, apiSecret)
 	if err != nil {
 		return err
 	}
@@ -107,6 +108,7 @@ func ValidateResponse(response *http.Response) error {
 	if !strings.Contains(response.Header.Get("content-type"), "application/json") {
 		return &Error{
 			Code:    response.StatusCode,
+			Request: requestFromResponse(response),
 			Message: string(body),
 		}
 	}
@@ -115,6 +117,13 @@ func ValidateResponse(response *http.Response) error {
 	if err = json.Unmarshal(body, &errResponse); err != nil {
 		return err
 	}
+	if errResponse.Error.Request == "" {
+		errResponse.Error.Request = requestFromResponse(response)
+	}
+	if errResponse.Error.Message == "" {
+		errResponse.Error.Message = string(body)
+	}
+
 	return &Error{
 		Code:    response.StatusCode,
 		Request: errResponse.Error.Request,
@@ -132,4 +141,11 @@ func getUrl(uri string) string {
 	}
 
 	return url
+}
+
+func requestFromResponse(resp *http.Response) string {
+	if resp.Request != nil && resp.Request.URL != nil {
+		return resp.Request.URL.String()
+	}
+	return ""
 }

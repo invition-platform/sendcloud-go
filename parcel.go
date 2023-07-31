@@ -317,7 +317,32 @@ func (l *LabelData) SetResponse(body []byte) error {
 	return nil
 }
 
+// DocumentFormat is any of the formats a Document can be in.
+type DocumentFormat string
+
+func (df DocumentFormat) String() string { return string(df) }
+
+func (df DocumentFormat) Name() string {
+	switch df {
+	case DocumentPdf:
+		return "pdf"
+	case DocumentZpl:
+		return "zpl"
+	case DocumentPng:
+		return "png"
+	default:
+		return "unknown"
+	}
+}
+
+const (
+	DocumentPdf DocumentFormat = "application/pdf"
+	DocumentZpl DocumentFormat = "application/zpl"
+	DocumentPng DocumentFormat = "image/png"
+)
+
+// Document represents a document file that can be downloaded from the api.
 type Document struct {
-	ContentType string
-	Body        []byte
+	Format DocumentFormat
+	Body   []byte
 }
